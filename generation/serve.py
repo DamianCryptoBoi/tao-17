@@ -12,6 +12,10 @@ from omegaconf import OmegaConf
 from DreamGaussianLib import GaussianProcessor, ModelsPreLoader, HDF5Loader
 from utils.video_utils import VideoUtils
 
+import requests
+import numpy as np
+from PIL import Image
+
 
 def get_args():
     parser = argparse.ArgumentParser()
@@ -43,10 +47,33 @@ async def generate(
     buffer = base64.b64encode(buffer.getbuffer()).decode("utf-8")
     return Response(content=buffer, media_type="application/octet-stream")
 
+def base64_to_numpy(base64_string):
+    # Decode the base64 string into bytes
+    base64_bytes = base64.b64decode(base64_string)
+
+    # Use BytesIO to handle the decoded base64 bytes as a file-like object
+    byte_stream = BytesIO(base64_bytes)
+
+    # Open the byte stream as an image
+    image = Image.open(byte_stream)
+
+    # Convert the image into a numpy array
+    numpy_array = np.array(image)
+
+    return numpy_array
+
+def get_img_from_prompt(prompt:str=""):
+    response = requests.post("http://0.0.0.0:8888/sample", json={"prompt": prompt})
+    data = response.json()
+    return data["image"]
 
 async def _generate(models: list, opt: OmegaConf, prompt: str) -> BytesIO:
     start_time = time()
-    gaussian_processor = GaussianProcessor.GaussianProcessor(opt, prompt)
+    try:
+        img = base64_to_numpy(get_img_from_prompt(prompt))
+        gaussian_processor = GaussianProcessor.GaussianProcessor(opt, "", img)
+    except:
+        gaussian_processor = GaussianProcessor.GaussianProcessor(opt, prompt)
     processed_data = gaussian_processor.train(models, opt.iters)
     hdf5_loader = HDF5Loader.HDF5Loader()
     buffer = hdf5_loader.pack_point_cloud_to_io_buffer(*processed_data)

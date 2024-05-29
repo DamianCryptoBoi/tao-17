@@ -14,7 +14,7 @@ from .GaussianSplattingModel import Renderer, MiniCam
 
 
 class GaussianProcessor:
-    def __init__(self, opt: OmegaConf, prompt: str = ""):
+    def __init__(self, opt: OmegaConf, prompt: str = "", image: np.ndarray = None):
         self.__opt = opt
         self.__W = opt.W
         self.__H = opt.H
@@ -43,7 +43,7 @@ class GaussianProcessor:
         self.__gaussian_scale_factor = 1
 
         # input image
-        self.__input_image = None
+        self.__input_image = image
         self.__input_mask = None
         self.__input_img_torch = None
         self.__input_mask_torch = None
