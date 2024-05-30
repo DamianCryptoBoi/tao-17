@@ -15,7 +15,15 @@ from utils.video_utils import VideoUtils
 import requests
 import numpy as np
 from PIL import Image
-
+from typing import Optional
+from functools import lru_cache
+import base64
+import threading
+from diffusers import DiffusionPipeline, DDIMScheduler
+import torch
+from pydantic import BaseModel
+from io import BytesIO
+from huggingface_hub import hf_hub_download
 
 def get_args():
     parser = argparse.ArgumentParser()
@@ -23,9 +31,58 @@ def get_args():
     parser.add_argument("--config", default="configs/text_mv.yaml")
     return parser.parse_args()
 
+base_model_id = "stabilityai/stable-diffusion-xl-base-1.0"
+repo_name = "ByteDance/Hyper-SD"
+ckpt_name = "Hyper-SDXL-8steps-CFG-lora.safetensors"
+
+
+class SampleInput(BaseModel):
+    prompt: str
+
+class DiffUsers:
+    def __init__(self):
+
+        print("setting up model")
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "mps")
+
+        ## n step lora
+        self.pipeline = DiffusionPipeline.from_pretrained(base_model_id, torch_dtype=torch.float16, variant="fp16").to(self.device)
+        self.pipeline.load_lora_weights(hf_hub_download(repo_name, ckpt_name))
+        self.pipeline.fuse_lora()
+        self.pipeline.scheduler = DDIMScheduler.from_config(self.pipeline.scheduler.config, timestep_spacing="trailing")
+        self.steps = 8
+        self.guidance_scale = 5
+
+        self._lock = threading.Lock()
+        print("model setup done")
+
+    def generate_image(self, prompt: str):
+        generator = torch.Generator(self.device)
+        seed = generator.seed()
+        generator = generator.manual_seed(seed)
+        image = self.pipeline(
+            prompt="3d model of " + prompt + ", white background",
+            negative_prompt="worst quality, low quality",
+            num_inference_steps=self.steps,
+            generator=generator,
+            guidance_scale=self.guidance_scale,
+        ).images[0]
+
+        return np.array(image)
+    
+    def sample(self, input: SampleInput):
+        try:
+            with self._lock:
+                return self.generate_image(input.prompt)
+        except Exception as e:
+            print(e)
+            with self._lock:
+                return self.generate_image(input.prompt)
+
 
 args = get_args()
 app = FastAPI()
+diffusers = DiffUsers()
 
 
 def get_config() -> OmegaConf:
@@ -47,30 +104,28 @@ async def generate(
     buffer = base64.b64encode(buffer.getbuffer()).decode("utf-8")
     return Response(content=buffer, media_type="application/octet-stream")
 
-def base64_to_numpy(base64_string):
-    # Decode the base64 string into bytes
-    base64_bytes = base64.b64decode(base64_string)
+# def base64_to_numpy(base64_string):
+#     # Decode the base64 string into bytes
+#     base64_bytes = base64.b64decode(base64_string)
 
-    # Use BytesIO to handle the decoded base64 bytes as a file-like object
-    byte_stream = BytesIO(base64_bytes)
+#     # Use BytesIO to handle the decoded base64 bytes as a file-like object
+#     byte_stream = BytesIO(base64_bytes)
 
-    # Open the byte stream as an image
-    image = Image.open(byte_stream)
+#     # Open the byte stream as an image
+#     image = Image.open(byte_stream)
 
-    # Convert the image into a numpy array
-    numpy_array = np.array(image)
+#     # Convert the image into a numpy array
+#     numpy_array = np.array(image)
 
-    return numpy_array
+#     return numpy_array
 
 def get_img_from_prompt(prompt:str=""):
-    response = requests.post("http://0.0.0.0:8888/sample", json={"prompt": prompt})
-    data = response.json()
-    return data["image"]
+    return diffusers.sample(SampleInput(prompt=prompt))
 
 async def _generate(models: list, opt: OmegaConf, prompt: str) -> BytesIO:
     start_time = time()
     try:
-        img = base64_to_numpy(get_img_from_prompt(prompt))
+        img = get_img_from_prompt(prompt)
         gaussian_processor = GaussianProcessor.GaussianProcessor(opt, "", img)
     except:
         gaussian_processor = GaussianProcessor.GaussianProcessor(opt, prompt)
