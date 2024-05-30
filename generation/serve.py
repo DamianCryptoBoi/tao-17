@@ -125,9 +125,12 @@ def get_img_from_prompt(prompt:str=""):
 async def _generate(models: list, opt: OmegaConf, prompt: str) -> BytesIO:
     start_time = time()
     try:
+        print("Trying to get image from diffusers")
         img = get_img_from_prompt(prompt)
+        print("Got image from diffusers")
         gaussian_processor = GaussianProcessor.GaussianProcessor(opt, "", img)
     except:
+        print("Failed to get image from diffusers, falling back to text")
         gaussian_processor = GaussianProcessor.GaussianProcessor(opt, prompt)
     processed_data = gaussian_processor.train(models, opt.iters)
     hdf5_loader = HDF5Loader.HDF5Loader()
