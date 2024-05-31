@@ -15,7 +15,7 @@ data = {
 }
 
 # Send a POST request to the endpoint
-response = requests.post(url, json=data)
+response = requests.post(url, json=data,timeout=300)
 
 # Print the response
 print(response.json())
