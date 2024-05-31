@@ -135,7 +135,7 @@ class GaussianProcessor:
             self.__input_img_torch = (
                 torch.from_numpy(self.__input_image).permute(2, 0, 1).unsqueeze(0).to(self.__device)
             )
-            self.__input_img_torch.float()
+            self.__input_img_torch = self.__input_img_torch.float()
             self.__input_img_torch = F.interpolate(
                 self.__input_img_torch,
                 (self.__opt.ref_size, self.__opt.ref_size),
