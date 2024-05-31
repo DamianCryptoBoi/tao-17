@@ -1,4 +1,5 @@
 import requests
+import base64
 
 # Define the URL of the endpoint
 url = "http://localhost:8094/validate/"
@@ -8,14 +9,17 @@ with open("test.obj", "rb") as f:
     # Read the file data
     file_data = f.read()
 
+# Encode the binary data as a base64 string
+file_data_base64 = base64.b64encode(file_data).decode('utf-8')
+
 # Define the data to send to the endpoint
 data = {
     "prompt": "pink bicycle",
-    "data": file_data,
+    "data": file_data_base64,
 }
 
 # Send a POST request to the endpoint
-response = requests.post(url, json=data,timeout=300)
+response = requests.post(url, json=data, timeout=300)
 
 # Print the response
 print(response.json())
