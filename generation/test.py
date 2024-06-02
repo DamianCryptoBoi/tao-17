@@ -32,7 +32,7 @@ from time import time
 parser = argparse.ArgumentParser(description="Send a prompt to an endpoint.")
 
 # Add the arguments
-parser.add_argument("mode", metavar="mode", type=int, help="the mode to send")
+parser.add_argument("prompt", metavar="mode", type=str)
 
 # Parse the arguments
 args = parser.parse_args()
@@ -41,11 +41,9 @@ args = parser.parse_args()
 # Send a POST request to the endpoint
 start_time = time()
 gen_response = requests.post("http://localhost:8093/generate/", data={
-    "prompt": "pink bicycle",
-    "mode": args.mode or 1
+    "prompt": args.prompt,
 }, timeout=600)
 print(f"[INFO] It took: {(time() - start_time) / 60.0} min to create model")
-print(gen_response.json())
 
 
 # val_response = requests.post("http://localhost:8094/validate/", json={
