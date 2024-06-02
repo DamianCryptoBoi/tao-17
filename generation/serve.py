@@ -102,8 +102,9 @@ async def generate(
     prompt: str = Form(),
     config: OmegaConf = Depends(get_config),
     models: list = Depends(get_models),
+    mode: Optional[int] = Form(1),
 ):
-    buffer = await _generate(models, config, prompt)
+    buffer = await _generate(models, config, prompt,mode)
     buffer = base64.b64encode(buffer.getbuffer()).decode("utf-8")
     return Response(content=buffer, media_type="application/octet-stream")
 
@@ -112,13 +113,16 @@ def get_img_from_prompt(prompt:str=""):
     data = diffusers.sample(SampleInput(prompt=prompt))
     return data["image"]
 
-async def _generate(models: list, opt: OmegaConf, prompt: str) -> BytesIO:
+async def _generate(models: list, opt: OmegaConf, prompt: str, mode: int = 1) -> BytesIO:
     start_time = time()
     try:
-        print("Trying to get image from diffusers")
-        img = get_img_from_prompt(prompt)
-        print("Got image from diffusers")
-        gaussian_processor = GaussianProcessor.GaussianProcessor(opt, "", base64_img = img)
+        if mode == 1:
+            print("Trying to get image from diffusers")
+            img = get_img_from_prompt(prompt)
+            print("Got image from diffusers")
+            gaussian_processor = GaussianProcessor.GaussianProcessor(opt, prompt=prompt, base64_img = img)
+        else:
+            gaussian_processor = GaussianProcessor.GaussianProcessor(opt, prompt)
     except:
         print("Failed to get image from diffusers, falling back to text")
         gaussian_processor = GaussianProcessor.GaussianProcessor(opt, prompt)

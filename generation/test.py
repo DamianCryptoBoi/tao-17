@@ -25,6 +25,7 @@
 # print(response.json())
 
 import requests
+from time import time
 
 # Define the URL of the endpoint
 url = "http://localhost:8093/generate/"
@@ -32,10 +33,13 @@ url = "http://localhost:8093/generate/"
 # Define the data to send to the endpoint
 data = {
     "prompt": "pink bicycle",
+    "mode": 0
 }
 
 # Send a POST request to the endpoint
+start_time = time()
 response = requests.post(url, data=data, timeout=600)
 
 # Print the response
-print(response.content)
+
+print(f"[INFO] It took: {(time() - start_time) / 60.0} min")
