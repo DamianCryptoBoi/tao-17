@@ -84,6 +84,7 @@ class DiffUsers:
 
 
 args = get_args()
+args.config = 'configs/image_sai.yaml'
 app = FastAPI()
 diffusers = DiffUsers()
 
