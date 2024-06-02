@@ -43,7 +43,7 @@ module.exports = {
     name: 'generation',
     script: 'serve.py',
     interpreter: '${CONDA_INTERPRETER_PATH}',
-    args: '--port 8093'
+    args: '--port 8093 --config configs/text_mv.yaml'
   }]
 };
 EOF

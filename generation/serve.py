@@ -28,7 +28,7 @@ from huggingface_hub import hf_hub_download
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--port", type=int, default=10006)
-    parser.add_argument("--config", default="configs/text_mv.yaml")
+    parser.add_argument("--config", default="configs/image_sai.yaml")
     return parser.parse_args()
 
 base_model_id = "stabilityai/stable-diffusion-xl-base-1.0"
@@ -84,7 +84,6 @@ class DiffUsers:
 
 
 args = get_args()
-args.config = 'configs/image_sai.yaml'
 app = FastAPI()
 diffusers = DiffUsers()
 
