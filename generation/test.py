@@ -37,18 +37,20 @@ parser.add_argument("mode", metavar="mode", type=int, help="the mode to send")
 # Parse the arguments
 args = parser.parse_args()
 
-# Define the URL of the endpoint
-url = "http://localhost:8093/generate/"
-
-# Define the data to send to the endpoint
-data = {
-    "prompt": "pink bicycle",
-    "mode": args.mode or 1
-}
 
 # Send a POST request to the endpoint
 start_time = time()
-response = requests.post(url, data=data, timeout=600)
+gen_response = requests.post("http://localhost:8093/generate/", data={
+    "prompt": "pink bicycle",
+    "mode": args.mode or 1
+}, timeout=600)
+print(f"[INFO] It took: {(time() - start_time) / 60.0} min to create model")
+
+val_response = requests.post("http://localhost:8094/validate/", json={
+    "prompt": "pink bicycle",
+    "data": gen_response.content
+}, timeout=600)
+
+print(val_response.json())
 
 # Print the response
-print(f"[INFO] It took: {(time() - start_time) / 60.0} min")
