@@ -84,7 +84,6 @@ class DiffUsers:
 
 
 args = get_args()
-print(args)
 app = FastAPI()
 diffusers = DiffUsers()
 
@@ -116,7 +115,8 @@ def get_img_from_prompt(prompt:str=""):
 
 async def _generate(models: list, opt: OmegaConf, prompt: str, mode: int = 1) -> BytesIO:
     start_time = time()
-    print(opt)
+    print(args)
+
     # try:
     #     if mode == 1:
     #         print("Trying to get image from diffusers")
