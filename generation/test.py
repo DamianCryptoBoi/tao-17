@@ -45,6 +45,8 @@ gen_response = requests.post("http://localhost:8093/generate/", data={
     "mode": args.mode or 1
 }, timeout=600)
 print(f"[INFO] It took: {(time() - start_time) / 60.0} min to create model")
+print(gen_response.json())
+
 
 # val_response = requests.post("http://localhost:8094/validate/", json={
 #     "prompt": "pink bicycle",

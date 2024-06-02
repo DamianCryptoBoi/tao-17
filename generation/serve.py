@@ -106,6 +106,16 @@ async def generate(
 ):
     buffer = await _generate(models, config, prompt,mode)
     buffer = base64.b64encode(buffer.getbuffer()).decode("utf-8")
+
+    response = requests.post("http://localhost:8094/validate/", json={"prompt": prompt, "data": buffer})
+
+    # Check if the request was successful
+    if response.status_code == 200:
+        print("Data sent successfully!")
+        print(response.json())
+    else:
+        print(f"Failed to send data: {response.text}")
+
     return Response(content=buffer, media_type="application/octet-stream")
 
 
