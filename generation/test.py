@@ -51,6 +51,6 @@ print(f"[INFO] It took: {(time() - start_time) / 60.0} min to create model")
 #     "data": gen_response.content
 # }, timeout=600)
 
-print(val_response.json())
+# print(val_response.json())
 
 # Print the response

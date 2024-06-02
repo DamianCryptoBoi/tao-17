@@ -89,7 +89,7 @@ diffusers = DiffUsers()
 
 
 def get_config() -> OmegaConf:
-    config = OmegaConf.load(args.config)
+    config = OmegaConf.load("configs/image_sai.yaml")
     return config
 
 
@@ -115,7 +115,6 @@ def get_img_from_prompt(prompt:str=""):
 
 async def _generate(models: list, opt: OmegaConf, prompt: str, mode: int = 1) -> BytesIO:
     start_time = time()
-    print(args)
 
     # try:
     #     if mode == 1:
