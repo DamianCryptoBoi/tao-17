@@ -115,6 +115,8 @@ def get_img_from_prompt(prompt:str=""):
 
 async def _generate(models: list, opt: OmegaConf, prompt: str, mode: int = 1) -> BytesIO:
     start_time = time()
+    print(f"Prompt: {prompt}")
+    print(opt)
     # try:
     #     if mode == 1:
     #         print("Trying to get image from diffusers")

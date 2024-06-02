@@ -123,6 +123,7 @@ class GaussianProcessor:
         self.__enable_sd = self.__opt.lambda_sd > 0 and self.__prompt != ""
         self.__enable_zero123 = self.__opt.lambda_zero123 > 0 and self.__input_image is not None
 
+
         if self.__guidance_sd is None and self.__enable_sd:
             self.__guidance_sd = models[0]
 
