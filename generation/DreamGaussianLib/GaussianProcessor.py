@@ -1,4 +1,3 @@
-from typing import Optional
 import numpy as np
 import cv2
 import tqdm
@@ -17,7 +16,7 @@ import base64
 
 
 class GaussianProcessor:
-    def __init__(self, opt: OmegaConf, prompt: str = "", base64_img: Optional[str] = None):
+    def __init__(self, opt: OmegaConf, prompt: str = "", base64_img: str = ""):
         self.__opt = opt
         self.__W = opt.W
         self.__H = opt.H
@@ -60,7 +59,7 @@ class GaussianProcessor:
         self.__negative_prompt = ""
 
         # load input data from cmdline
-        if base64_img is not None:
+        if len(base64_img) > 0:
             self._load_image_prompt(base64_img)
 
         # override prompt from cmdline
