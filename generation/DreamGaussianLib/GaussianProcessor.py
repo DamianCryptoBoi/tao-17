@@ -417,11 +417,11 @@ class GaussianProcessor:
         print(f"[INFO] Image loaded from base64")
 
         # load prompt
-        file_prompt = file.replace("_rgba.png", "_caption.txt")
-        if os.path.exists(file_prompt):
-            print(f"[INFO] load prompt from {file_prompt}...")
-            with open(file_prompt, "r") as f:
-                self.__prompt = f.read().strip()
+        # file_prompt = file.replace("_rgba.png", "_caption.txt")
+        # if os.path.exists(file_prompt):
+        #     print(f"[INFO] load prompt from {file_prompt}...")
+        #     with open(file_prompt, "r") as f:
+        #         self.__prompt = f.read().strip()
 
     def get_gs_model_data(self):
         return self.__renderer.gaussians.get_model_data()
