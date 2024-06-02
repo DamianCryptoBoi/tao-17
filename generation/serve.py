@@ -67,8 +67,11 @@ class DiffUsers:
             generator=generator,
             guidance_scale=self.guidance_scale,
         ).images[0]
-
-        return np.array(image)
+        buf = BytesIO()
+        image.save(buf, format="png")
+        buf.seek(0)
+        image = base64.b64encode(buf.read()).decode()
+        return {"image": image}
     
     def sample(self, input: SampleInput):
         try:
@@ -104,23 +107,10 @@ async def generate(
     buffer = base64.b64encode(buffer.getbuffer()).decode("utf-8")
     return Response(content=buffer, media_type="application/octet-stream")
 
-# def base64_to_numpy(base64_string):
-#     # Decode the base64 string into bytes
-#     base64_bytes = base64.b64decode(base64_string)
-
-#     # Use BytesIO to handle the decoded base64 bytes as a file-like object
-#     byte_stream = BytesIO(base64_bytes)
-
-#     # Open the byte stream as an image
-#     image = Image.open(byte_stream)
-
-#     # Convert the image into a numpy array
-#     numpy_array = np.array(image)
-
-#     return numpy_array
 
 def get_img_from_prompt(prompt:str=""):
-    return diffusers.sample(SampleInput(prompt=prompt))
+    data = diffusers.sample(SampleInput(prompt=prompt))
+    return data["image"]
 
 async def _generate(models: list, opt: OmegaConf, prompt: str) -> BytesIO:
     start_time = time()
@@ -128,7 +118,7 @@ async def _generate(models: list, opt: OmegaConf, prompt: str) -> BytesIO:
         print("Trying to get image from diffusers")
         img = get_img_from_prompt(prompt)
         print("Got image from diffusers")
-        gaussian_processor = GaussianProcessor.GaussianProcessor(opt, "", img)
+        gaussian_processor = GaussianProcessor.GaussianProcessor(opt, "", base64_img = img)
     except:
         print("Failed to get image from diffusers, falling back to text")
         gaussian_processor = GaussianProcessor.GaussianProcessor(opt, prompt)

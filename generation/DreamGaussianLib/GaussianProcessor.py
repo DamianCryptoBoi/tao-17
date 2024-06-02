@@ -1,3 +1,4 @@
+from typing import Optional
 import numpy as np
 import cv2
 import tqdm
@@ -12,9 +13,11 @@ from omegaconf import OmegaConf
 from .CameraUtils import orbit_camera, OrbitCamera
 from .GaussianSplattingModel import Renderer, MiniCam
 
+import base64
+
 
 class GaussianProcessor:
-    def __init__(self, opt: OmegaConf, prompt: str = "", image: np.ndarray = None):
+    def __init__(self, opt: OmegaConf, prompt: str = "", base64_img: Optional[str] = None):
         self.__opt = opt
         self.__W = opt.W
         self.__H = opt.H
@@ -43,7 +46,7 @@ class GaussianProcessor:
         self.__gaussian_scale_factor = 1
 
         # input image
-        self.__input_image = image
+        self.__input_image = None
         self.__input_mask = None
         self.__input_img_torch = None
         self.__input_mask_torch = None
@@ -57,8 +60,8 @@ class GaussianProcessor:
         self.__negative_prompt = ""
 
         # load input data from cmdline
-        if self.__opt.input is not None:
-            self._load_image_prompt(self.__opt.input)
+        if base64_img is not None:
+            self._load_image_prompt(base64_img)
 
         # override prompt from cmdline
         if self.__opt.prompt is not None and prompt == "":
@@ -388,10 +391,14 @@ class GaussianProcessor:
         torch.cuda.synchronize()
         # print("[INFO] Training time (log): ", t, " ms")
 
-    def _load_image_prompt(self, file: str):
-        # load image
-        print(f"[INFO] load image from {file}...")
-        img = cv2.imread(file, cv2.IMREAD_UNCHANGED)
+    def _load_image_prompt(self, base64_img: str):
+        # Decode the base64 image
+        print(f"[INFO] Decoding base64 image...")
+        img_data = base64.b64decode(base64_img)
+        img = np.frombuffer(img_data, np.uint8)
+
+        # Convert the image data to an image
+        img = cv2.imdecode(img, cv2.IMREAD_UNCHANGED)
         if img.shape[-1] == 3:
             if self.__bg_remover is None:
                 self.__bg_remover = rembg.new_session()
