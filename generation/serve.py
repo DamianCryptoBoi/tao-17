@@ -115,16 +115,23 @@ def get_img_from_prompt(prompt:str=""):
 
 async def _generate(models: list, opt: OmegaConf, prompt: str, mode: int = 1) -> BytesIO:
     start_time = time()
-    try:
-        if mode == 1:
-            print("Trying to get image from diffusers")
-            img = get_img_from_prompt(prompt)
-            print("Got image from diffusers")
-            gaussian_processor = GaussianProcessor.GaussianProcessor(opt, prompt="", base64_img = img)
-        else:
-            gaussian_processor = GaussianProcessor.GaussianProcessor(opt, prompt)
-    except:
-        print("Failed to process the image, falling back to text")
+    # try:
+    #     if mode == 1:
+    #         print("Trying to get image from diffusers")
+    #         img = get_img_from_prompt(prompt)
+    #         print("Got image from diffusers")
+    #         gaussian_processor = GaussianProcessor.GaussianProcessor(opt, prompt="", base64_img = img)
+    #     else:
+    #         gaussian_processor = GaussianProcessor.GaussianProcessor(opt, prompt)
+    # except:
+    #     print("Failed to process the image, falling back to text")
+    #     gaussian_processor = GaussianProcessor.GaussianProcessor(opt, prompt)
+    if mode == 1:
+        print("Trying to get image from diffusers")
+        img = get_img_from_prompt(prompt)
+        print("Got image from diffusers")
+        gaussian_processor = GaussianProcessor.GaussianProcessor(opt, prompt="", base64_img = img)
+    else:
         gaussian_processor = GaussianProcessor.GaussianProcessor(opt, prompt)
     processed_data = gaussian_processor.train(models, opt.iters)
     hdf5_loader = HDF5Loader.HDF5Loader()
