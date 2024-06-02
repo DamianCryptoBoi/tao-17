@@ -414,6 +414,8 @@ class GaussianProcessor:
         # bgr to rgb
         self.__input_image = self.__input_image[..., ::-1].copy()
 
+        print(f"[INFO] Image loaded from base64")
+
         # load prompt
         file_prompt = file.replace("_rgba.png", "_caption.txt")
         if os.path.exists(file_prompt):

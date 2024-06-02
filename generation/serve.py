@@ -124,7 +124,7 @@ async def _generate(models: list, opt: OmegaConf, prompt: str, mode: int = 1) ->
         else:
             gaussian_processor = GaussianProcessor.GaussianProcessor(opt, prompt)
     except:
-        print("Failed to get image from diffusers, falling back to text")
+        print("Failed to process the image, falling back to text")
         gaussian_processor = GaussianProcessor.GaussianProcessor(opt, prompt)
     processed_data = gaussian_processor.train(models, opt.iters)
     hdf5_loader = HDF5Loader.HDF5Loader()
