@@ -104,19 +104,28 @@ async def generate(
     models: list = Depends(get_models),
     mode: Optional[int] = Form(1),
 ):
-    buffer = await _generate(models, config, prompt,mode)
-    buffer = base64.b64encode(buffer.getbuffer()).decode("utf-8")
+    for i in range(3):
+        buffer = await _generate(models, config, prompt, mode)
+        buffer = base64.b64encode(buffer.getbuffer()).decode("utf-8")
 
-    response = requests.post("http://localhost:8094/validate/", json={"prompt": prompt, "data": buffer})
+        response = requests.post("http://localhost:8094/validate/", json={"prompt": prompt, "data": buffer})
 
-    # Check if the request was successful
-    if response.status_code == 200:
-        print("Data sent successfully!")
-        print(response.json())
-    else:
-        print(f"Failed to send data: {response.text}")
-
-    return Response(content=buffer, media_type="application/octet-stream")
+        # Check if the request was successful
+        if response.status_code == 200:
+            print("Data sent successfully!")
+            print(response.json())
+            score = response.json().get("score", 0)
+            print(f"Score: {score} in attempt {i + 1}")
+            if score >= 0.8:
+                print("Score is high enough, stopping")
+                return buffer
+            elif score < 0.6:
+                print("Score is too low, trying again")
+        else:
+            print(f"Failed to send data: {response.text}")
+    # If the loop completes without returning, return an empty buffer
+    print("Did not receive a high enough score after 3 attempts, returning empty buffer")
+    return ""
 
 
 def get_img_from_prompt(prompt:str=""):
@@ -124,31 +133,20 @@ def get_img_from_prompt(prompt:str=""):
     return data["image"]
 
 async def _generate(models: list, opt: OmegaConf, prompt: str, mode: int = 1) -> BytesIO:
-    start_time = time()
-
-    # try:
-    #     if mode == 1:
-    #         print("Trying to get image from diffusers")
-    #         img = get_img_from_prompt(prompt)
-    #         print("Got image from diffusers")
-    #         gaussian_processor = GaussianProcessor.GaussianProcessor(opt, prompt="", base64_img = img)
-    #     else:
-    #         gaussian_processor = GaussianProcessor.GaussianProcessor(opt, prompt)
-    # except:
-    #     print("Failed to process the image, falling back to text")
-    #     gaussian_processor = GaussianProcessor.GaussianProcessor(opt, prompt)
-    if mode == 1:
+    try:
+        start_time = time()
         print("Trying to get image from diffusers")
         img = get_img_from_prompt(prompt)
         print("Got image from diffusers")
         gaussian_processor = GaussianProcessor.GaussianProcessor(opt, prompt="", base64_img = img)
-    else:
-        gaussian_processor = GaussianProcessor.GaussianProcessor(opt, prompt)
-    processed_data = gaussian_processor.train(models, opt.iters)
-    hdf5_loader = HDF5Loader.HDF5Loader()
-    buffer = hdf5_loader.pack_point_cloud_to_io_buffer(*processed_data)
-    print(f"[INFO] It took: {(time() - start_time) / 60.0} min")
-    return buffer
+        processed_data = gaussian_processor.train(models, opt.iters)
+        hdf5_loader = HDF5Loader.HDF5Loader()
+        buffer = hdf5_loader.pack_point_cloud_to_io_buffer(*processed_data)
+        print(f"[INFO] It took: {(time() - start_time) / 60.0} min")
+        return buffer
+    except Exception as e:
+        print(e)
+        return ""
 
 
 @app.post("/generate_raw/")
