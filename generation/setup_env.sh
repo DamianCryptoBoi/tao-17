@@ -11,6 +11,7 @@ fi
 
 # Attempt to find Conda's base directory and source it (required for `conda activate`)
 CONDA_BASE=$(conda info --base)
+PATH="${CONDA_BASE}/bin/":$PATH
 source "${CONDA_BASE}/etc/profile.d/conda.sh"
 
 # Create environment and activate it
@@ -43,7 +44,7 @@ module.exports = {
     name: 'generation',
     script: 'serve.py',
     interpreter: '${CONDA_INTERPRETER_PATH}',
-    args: '--port 8093 --config configs/text_mv.yaml'
+    args: '--port 8093'
   }]
 };
 EOF
