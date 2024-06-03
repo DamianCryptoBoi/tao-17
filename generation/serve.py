@@ -106,7 +106,7 @@ async def generate(
     best_score = 0
     best_buffer = ""
 
-    for i in range(3):
+    for i in range(5):
         buffer = await _generate(models, config, prompt)
         buffer = base64.b64encode(buffer.getbuffer()).decode("utf-8")
 
