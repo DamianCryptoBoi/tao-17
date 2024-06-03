@@ -32,6 +32,9 @@ git clone --branch 0.9.9.0 https://github.com/g-truc/glm.git ./extras/diff-gauss
 pip install ./extras/diff-gaussian-rasterization
 rm -rf ./extras
 
+echo -e "\n\n[INFO] Installing simple-knn package\n"
+pip install ./extras/simple-knn
+
 # Store the path of the Conda interpreter
 CONDA_INTERPRETER_PATH=$(which python)
 
