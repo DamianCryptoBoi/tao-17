@@ -102,10 +102,12 @@ async def generate(
     prompt: str = Form(),
     config: OmegaConf = Depends(get_config),
     models: list = Depends(get_models),
-    mode: Optional[int] = Form(1),
 ):
+    best_score = 0
+    best_buffer = ""
+
     for i in range(3):
-        buffer = await _generate(models, config, prompt, mode)
+        buffer = await _generate(models, config, prompt)
         buffer = base64.b64encode(buffer.getbuffer()).decode("utf-8")
 
         response = requests.post("http://localhost:8094/validate/", json={"prompt": prompt, "data": buffer})
@@ -113,26 +115,33 @@ async def generate(
         # Check if the request was successful
         if response.status_code == 200:
             print("Data sent successfully!")
-            print(response.json())
             score = response.json().get("score", 0)
             print(f"Score: {score} in attempt {i + 1}")
             if score >= 0.8:
                 print("Score is high enough, stopping")
                 return buffer
+            if score > best_score and score > 0.6:
+                best_score = score
+                best_buffer = buffer
             elif score < 0.6:
                 print("Score is too low, trying again")
         else:
             print(f"Failed to send data: {response.text}")
-    # If the loop completes without returning, return an empty buffer
-    print("Did not receive a high enough score after 3 attempts, returning empty buffer")
-    return ""
+
+    # If the loop completes without returning, return the buffer with the best score
+    if best_score > 0.6:
+        print(f"Did not receive a high enough score after 3 attempts, returning buffer with best score: {best_score}")
+        return best_buffer
+    else:
+        print("Did not receive a score greater than 0.6 after 3 attempts, returning empty buffer")
+        return ""
 
 
 def get_img_from_prompt(prompt:str=""):
     data = diffusers.sample(SampleInput(prompt=prompt))
     return data["image"]
 
-async def _generate(models: list, opt: OmegaConf, prompt: str, mode: int = 1) -> BytesIO:
+async def _generate(models: list, opt: OmegaConf, prompt: str) -> BytesIO:
     try:
         start_time = time()
         print("Trying to get image from diffusers")
