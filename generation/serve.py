@@ -104,7 +104,7 @@ async def generate(
     models: list = Depends(get_models),
 ):
     best_score = 0
-    best_buffer = ""
+    best_buffer = None
 
     for i in range(10):
         buffer = await _generate(models, config, prompt)
@@ -134,7 +134,7 @@ async def generate(
         return best_buffer
     else:
         print("Did not receive a score greater than 0.6 after 10 attempts, returning empty buffer")
-        return ""
+        return 
 
 
 def get_img_from_prompt(prompt:str=""):
