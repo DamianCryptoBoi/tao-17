@@ -106,7 +106,7 @@ async def generate(
     best_score = 0
     best_buffer = ""
 
-    for i in range(5):
+    for i in range(10):
         buffer = await _generate(models, config, prompt)
         buffer = base64.b64encode(buffer.getbuffer()).decode("utf-8")
 
@@ -130,10 +130,10 @@ async def generate(
 
     # If the loop completes without returning, return the buffer with the best score
     if best_score > 0.6:
-        print(f"Did not receive a high enough score after 3 attempts, returning buffer with best score: {best_score}")
+        print(f"Did not receive a high enough score after 10 attempts, returning buffer with best score: {best_score}")
         return best_buffer
     else:
-        print("Did not receive a score greater than 0.6 after 3 attempts, returning empty buffer")
+        print("Did not receive a score greater than 0.6 after 10 attempts, returning empty buffer")
         return ""
 
 
